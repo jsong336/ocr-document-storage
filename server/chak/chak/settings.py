@@ -29,10 +29,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-2et0ygf7x+x(9ku4!jkfkhn866wh@izok)7w26kzy4_yi&&3o^"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = flag(os.getenv("CHAK_DEBUG", "false"))
+DEBUG = flag(os.getenv("DJANGO_DEBUG", "false"))
 
 ALLOWED_HOSTS = []
 
@@ -81,17 +81,16 @@ WSGI_APPLICATION = "chak.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-postgres_cfg = json.loads(os.getenv("CHAK_POSTGRES_CONNECTION"))
+postgres_cfg = json.loads(os.getenv("DJANGO_POSTGRES_CONNECTION"))
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "OPTIONS": {
+        **{
             key.upper(): value
             for key, value in postgres_cfg.items()
         },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
