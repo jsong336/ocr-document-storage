@@ -13,10 +13,11 @@ def submit_documents(
     background_tasks: BackgroundTasks, files: list[UploadFile] = File(...)
 ):
     for file in files:
+
         def process_ocr(*args, **kw) -> str:
             try:
-                results = _process_ocr(*args, **kw)
-                print(results[:100])
+                texts = _process_ocr(*args, **kw)
+
             except Exception:
                 logger.warning()
             finally:
@@ -25,5 +26,5 @@ def submit_documents(
         task_id = str(uuid.uuid4())
         logger.info(f"queuing task_id: {task_id}")
         background_tasks.add_task(process_ocr, task_id, file.file)
-        
+
     return {"message": "ok", "task_id": task_id}, 201

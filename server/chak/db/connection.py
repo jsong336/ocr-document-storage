@@ -9,3 +9,7 @@ database = client[settings.mongodb_config.database]
 class collections(object):
     UserAccount = database["UserAccounts"]
     Documents = database["Documents"]
+
+
+collections.UserAccount.create_index("email", unique=True)
+collections.Documents.create_index(["doc", "text"])

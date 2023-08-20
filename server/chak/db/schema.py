@@ -17,6 +17,11 @@ class BaseRootModel(_BaseModel):
 
 class UserAccount(BaseRootModel):
     email: EmailStr = Field()
+    last_name: str
+    first_name: str
+    sub: str
+    picture_link: t.Optional[str] = None
+    locale: t.Optional[str] = None
 
 
 class Document(BaseRootModel):

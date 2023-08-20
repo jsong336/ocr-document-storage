@@ -1,6 +1,7 @@
 from .schema import BaseRootModel, UserAccount, Document
 from .connection import collections
 import datetime as dt
+import pymongo
 import typing as t
 from typing_extensions import Unpack
 from bson.objectid import ObjectId
@@ -53,15 +54,20 @@ def str_to_bson_object_id(body: dict[str, t.Any], keys: set = None):
 
 @transaction()
 def create_user_account(user: UserAccount):
-    result = collections.UserAccount.insert_one(
-        str_to_bson_object_id(user.model_dump(by_alias=True))
-    )
+    try:
+        result = collections.UserAccount.insert_one(
+            str_to_bson_object_id(user.model_dump(by_alias=True))
+        )
+    except pymongo.errors.DuplicateKeyError:
+        raise ValueError(f"{user.email} already exists.")
     user.id = str(result.inserted_id)
     return
 
 
-def get_user_account(id: str) -> UserAccount:
-    results = collections.UserAccount.find_one(filter={"_id": ObjectId(id)})
+def get_user_account(email: str) -> UserAccount:
+    results = collections.UserAccount.find_one(filter={"email": email})
+    if results is None:
+        raise ValueError(f"UserAccount with {email} not found")
     return UserAccount(**bson_object_id_to_str(results))
 
 
@@ -76,4 +82,6 @@ def create_document(doc: Document) -> Document:
 
 def get_document(id: str) -> Document:
     results = collections.Documents.find_one(filter={"_id": ObjectId(id)})
+    if results is None:
+        raise ValueError(f"Document with {id} not found")
     return Document(**bson_object_id_to_str(results))

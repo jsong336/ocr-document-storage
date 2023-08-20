@@ -23,6 +23,9 @@ setup(
         "pytesseract",
         "python-multipart",
         "typing_extensions",
+        "authlib",
+        "itsdangerous",
+        "httpx",
     ],
     extras_require={
         "dev": [
