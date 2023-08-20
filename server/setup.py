@@ -20,6 +20,8 @@ setup(
         "pydantic-settings",
         "pydantic[email]",
         "pymongo[srv]",
+        "pytesseract",
+        "python-multipart"
     ],
     extras_require={
         "dev": [
