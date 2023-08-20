@@ -18,14 +18,14 @@ setup(
         "fastapi[uvicorn]",
         "uvicorn[standard]",
         "pydantic-settings",
-        "pyodbc",
-        "sqlalchemy",
-        "psycopg2",
+        "pydantic[email]",
+        "pymongo[srv]",
     ],
     extras_require={
         "dev": [
             "pytest",
             "black",
+            "faker",
         ]
     },
 )

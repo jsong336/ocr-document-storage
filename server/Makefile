@@ -32,9 +32,14 @@ fmt:
 
 .PHONY: db
 db:
-	docker compose up postgres pgadmin
+	docker compose up mongo
 
 
 .PHONY: start 
 start:
 	$(python) -m uvicorn chak.app:create_app --factory --reload --host 0.0.0.0 --port $(PORT)
+
+
+.PHONY: tests
+tests:
+	$(python) -m pytest -s tests/

@@ -1,19 +1,13 @@
-from sqlalchemy import create_engine, URL
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from ..settings import settings
-
-url = URL.create(**settings.postgres_connection.model_dump())
-engine = create_engine(url)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
+from pymongo import MongoClient
+from pymongo.collection import Collection
 
 
-def session() -> SessionLocal:
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
+client = MongoClient(settings.mongodb_config.connection_uri)
+database = client[settings.mongodb_config.database]
+collections = {
+    "UserAccount": database["UserAccounts"]
+}
+
+def get_user_collection() -> Collection:
+    return collections["UserAccount"]
