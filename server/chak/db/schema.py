@@ -24,8 +24,15 @@ class UserAccount(BaseRootModel):
     locale: t.Optional[str] = None
 
 
+class FileMeta(_BaseModel):
+    filename: str
+    content_type: str
+    file_size: int
+
+
 class Document(BaseRootModel):
     owner_id: str
     title: str = Field(default="")
-    doc: t.Optional[str] = Field(default=None)
+    text_search: t.Optional[str] = Field(default=None)
     tags: list[str] = Field(default_factory=list)
+    file: FileMeta = Field()

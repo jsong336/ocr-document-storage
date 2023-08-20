@@ -19,6 +19,7 @@ def transaction(
     mode: t.Literal["create", "update"] = None
 ) -> t.Callable[[TransactionOperation], TransactionOperation]:
     def _transaction(fn: TransactionOperation) -> TransactionOperation:
+        nonlocal mode
         if fn.__name__.startswith("create"):
             mode = "create"
         elif fn.__name__.startswith("update"):
@@ -83,7 +84,7 @@ def create_document(doc: Document) -> Document:
     result = collections.Documents.insert_one(
         str_to_bson_object_id(doc.model_dump(by_alias=True), keys={"owner_id"})
     )
-    doc.id = result.inserted_id
+    doc.id = str(result.inserted_id)
     return
 
 
@@ -92,3 +93,17 @@ def get_document(id: str) -> Document:
     if results is None:
         raise ValueError(f"Document with {id} not found")
     return Document(**bson_object_id_to_str(results))
+
+
+@transaction(mode="update")
+def set_document_text_search(doc: Document, text: str):
+    collections.Documents.update_one(
+        filter={"_id": ObjectId(doc.id)},
+        update={
+            "$set": {
+                "text_search": text,
+                "updated_at": doc.updated_at,
+            },
+        },
+    )
+    return

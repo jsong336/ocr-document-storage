@@ -12,4 +12,4 @@ class collections(object):
 
 
 collections.UserAccount.create_index("email", unique=True)
-collections.Documents.create_index(["doc", "text"])
+collections.Documents.create_index(["text_search", "text"])
