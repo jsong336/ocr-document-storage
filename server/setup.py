@@ -14,8 +14,13 @@ setup(
     packages=["chak"],  # same as name
     python_requires=">=3.10.0",
     install_requires=[
-        "django", 
-        "psycopg2-binary"
+        "fastapi",
+        "fastapi[uvicorn]",
+        "uvicorn[standard]",
+        "pydantic-settings",
+        "pyodbc",
+        "sqlalchemy",
+        "psycopg2",
     ],
     extras_require={
         "dev": [
