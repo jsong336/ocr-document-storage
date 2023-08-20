@@ -64,7 +64,14 @@ def create_user_account(user: UserAccount):
     return
 
 
-def get_user_account(email: str) -> UserAccount:
+def get_user_account_by_id(id: str) -> UserAccount:
+    results = collections.UserAccount.find_one(filter={"_id": ObjectId(id)})
+    if results is None:
+        raise ValueError(f"UserAccount with {id} not found")
+    return UserAccount(**bson_object_id_to_str(results))
+
+
+def get_user_account_by_email(email: str) -> UserAccount:
     results = collections.UserAccount.find_one(filter={"email": email})
     if results is None:
         raise ValueError(f"UserAccount with {email} not found")

@@ -10,7 +10,8 @@ router = APIRouter()
 
 @router.post("/")
 def submit_documents(
-    background_tasks: BackgroundTasks, files: list[UploadFile] = File(...)
+    background_tasks: BackgroundTasks,
+    files: list[UploadFile] = File(...),
 ):
     for file in files:
 

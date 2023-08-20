@@ -1,11 +1,17 @@
+from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
+from pydantic import BaseModel
 import json
 import typing as t
 from ..settings import settings
-from ..db.repository import create_user_account, get_user_account
+from ..db.repository import (
+    create_user_account,
+    get_user_account_by_email,
+    get_user_account_by_id,
+)
 from ..db.schema import UserAccount
 
 # https://colab.research.google.com/github/kmcentush/site/blob/master/_notebooks/2020-08-16-fastapi_google_oauth_part1.ipynb#scrollTo=LBUPzo_inL4M
@@ -28,39 +34,15 @@ oauth.register(
 )
 
 
-@router.get("/register", tags=["authentication"])
-async def redirect_oauth_register(request: Request):
-    if "user" in request.session:
-        request.session.pop("user", None)
-        # return RedirectResponse(url='/logout')
+class SessionUserCache(BaseModel):
+    id: str
 
-    redirect_url = request.url_for("register")
-    return await oauth.google.authorize_redirect(request, redirect_url)
+    @classmethod
+    def from_user_account(cls, user_account: UserAccount) -> SessionUserCache:
+        return cls(id=user_account.id)
 
-
-@router.get("/login", tags=["authentication"])
-async def redirect_oauth_login(request: Request):
-    if "user" in request.session:
-        request.session.pop("user", None)
-        # return RedirectResponse(url='/logout')
-
-    redirect_url = request.url_for("login")
-    return await oauth.google.authorize_redirect(request, redirect_url)
-
-
-@router.get("/auth/login")
-async def login(request: Request):
-    token = await oauth.google.authorize_access_token(request)
-    token = dict(token)
-    userinfo = token.get("userinfo")
-    account = google_user_info_to_user_account(userinfo)
-
-    try:
-        account = get_user_account(account.email)
-    except ValueError:
-        raise HTTPException(401)
-
-    return RedirectResponse(url="/")
+    def to_user_account(self) -> UserAccount:
+        return get_user_account_by_id(self.id)
 
 
 def google_user_info_to_user_account(userinfo: dict[str, t.Any]) -> UserAccount:
@@ -73,6 +55,29 @@ def google_user_info_to_user_account(userinfo: dict[str, t.Any]) -> UserAccount:
         locale=userinfo.get("locale"),
     )
     return account
+
+
+def get_user(request: Request) -> UserAccount:
+    user: dict = request.session.get("user")
+    user_account = SessionUserCache(**user).to_user_account()
+    if user is None or user_account is None:
+        raise LoginRequiredException()
+    return user_account
+
+
+class LoginRequiredException(HTTPException):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(401, detail="Login required to proceeed.", **kwargs)
+
+
+@router.get("/register", tags=["authentication"])
+async def redirect_oauth_register(request: Request):
+    if "user" in request.session:
+        request.session.pop("user", None)
+        # return RedirectResponse(url='/logout')
+
+    redirect_url = request.url_for("register")
+    return await oauth.google.authorize_redirect(request, redirect_url)
 
 
 @router.get("/auth/register")
@@ -90,4 +95,29 @@ async def register(request: Request):
     except ValueError as e:
         return HTTPException(status_code=400, detail=e.args[0])
 
+    return RedirectResponse(url="/")
+
+
+@router.get("/login", tags=["authentication"])
+async def redirect_oauth_login(request: Request):
+    if "user" in request.session:
+        request.session.pop("user", None)
+        # return RedirectResponse(url='/logout')
+    redirect_url = request.url_for("login")
+    return await oauth.google.authorize_redirect(request, redirect_url)
+
+
+@router.get("/auth/login")
+async def login(request: Request):
+    token = await oauth.google.authorize_access_token(request)
+    token = dict(token)
+    userinfo = token.get("userinfo")
+    account = google_user_info_to_user_account(userinfo)
+
+    try:
+        account = get_user_account_by_email(account.email)
+    except ValueError:
+        raise HTTPException(401)
+
+    request.session["user"] = SessionUserCache.from_user_account(account).model_dump()
     return RedirectResponse(url="/")

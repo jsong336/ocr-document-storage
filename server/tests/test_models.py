@@ -13,7 +13,7 @@ def test_user_accounts():
     assert account.created_at is not None
     assert account.updated_at is not None
 
-    account_get = repos.get_user_account(account.id)
+    account_get = repos.get_user_account_by_email(account.id)
     assert account_get.id == account.id
     assert account_get.email == account.email
     # assert account_get.created_at == account.created_at
