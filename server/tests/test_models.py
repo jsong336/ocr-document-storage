@@ -21,9 +21,12 @@ def test_user_accounts():
 
 
 def test_documents():
-    document = Document(title=faker.name())
+    account = UserAccount(email=faker.email())
+    repos.create_user_account(account)
+
+    document = Document(owner_id=account.id, title=faker.name())
     repos.create_document(document)
-    
+
     assert document.id is not None
     assert document.created_at is not None
     assert document.updated_at is not None
@@ -31,4 +34,4 @@ def test_documents():
     document_get = repos.get_document(document.id)
     assert document_get.id == document_get.id
     assert document_get.title == document_get.title
-    
+    assert document_get.owner_id == document_get.owner_id

@@ -6,10 +6,13 @@ from typing_extensions import Unpack
 from bson.objectid import ObjectId
 from functools import wraps
 
+
 class Kwargs(t.TypedDict, total=False):
     ...
 
+
 TransactionOperation = t.Callable[[BaseRootModel, Unpack[Kwargs]], None]
+
 
 def transaction(
     mode: t.Literal["create", "update"] = None
@@ -39,28 +42,38 @@ def transaction(
     return _transaction
 
 
+def bson_object_id_to_str(body: dict[str, t.Any]):
+    return {k: str(v) if isinstance(v, ObjectId) else v for k, v in body.items()}
+
+
+def str_to_bson_object_id(body: dict[str, t.Any], keys: set = None):
+    keys = {"_id"} | (keys if keys else set())
+    return {k: ObjectId(v) if k in keys else v for k, v in body.items()}
+
+
 @transaction()
 def create_user_account(user: UserAccount):
-    result = collections.UserAccount.insert_one(user.model_dump())
+    result = collections.UserAccount.insert_one(
+        str_to_bson_object_id(user.model_dump(by_alias=True))
+    )
     user.id = str(result.inserted_id)
     return
 
 
 def get_user_account(id: str) -> UserAccount:
     results = collections.UserAccount.find_one(filter={"_id": ObjectId(id)})
-
-    results["_id"] = str(results["_id"])
-    return UserAccount(**results)
+    return UserAccount(**bson_object_id_to_str(results))
 
 
 @transaction()
 def create_document(doc: Document) -> Document:
-    result = collections.Documents.insert_one(doc.model_dump())
+    result = collections.Documents.insert_one(
+        str_to_bson_object_id(doc.model_dump(by_alias=True), keys={"owner_id"})
+    )
     doc.id = result.inserted_id
     return
 
 
 def get_document(id: str) -> Document:
     results = collections.Documents.find_one(filter={"_id": ObjectId(id)})
-    results["_id"] = str(results["_id"])
-    return Document(**results)
+    return Document(**bson_object_id_to_str(results))

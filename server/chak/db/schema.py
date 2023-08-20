@@ -20,6 +20,7 @@ class UserAccount(BaseRootModel):
 
 
 class Document(BaseRootModel):
+    owner_id: str
     title: str = Field(default="")
     doc: t.Optional[str] = Field(default=None)
     tags: list[str] = Field(default_factory=list)
