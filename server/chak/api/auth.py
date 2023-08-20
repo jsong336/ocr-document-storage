@@ -58,7 +58,7 @@ def google_user_info_to_user_account(userinfo: dict[str, t.Any]) -> UserAccount:
 
 
 def get_user(request: Request) -> UserAccount:
-    user: dict = request.session.get("user")
+    user: dict = request.session.get("user", {})
     user_account = SessionUserCache(**user).to_user_account()
     if user is None or user_account is None:
         raise LoginRequiredException()
