@@ -1,6 +1,6 @@
 import pytesseract
 import io
-import logging 
+import logging
 from PIL import Image
 
 

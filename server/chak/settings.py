@@ -1,9 +1,11 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import BaseModel
 
+
 class MongoDbConfig(BaseModel):
     connection_uri: str
     database: str
+
 
 class Settings(BaseSettings):
     mongodb_config: MongoDbConfig

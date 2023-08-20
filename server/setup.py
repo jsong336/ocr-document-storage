@@ -21,7 +21,8 @@ setup(
         "pydantic[email]",
         "pymongo[srv]",
         "pytesseract",
-        "python-multipart"
+        "python-multipart",
+        "typing_extensions",
     ],
     extras_require={
         "dev": [

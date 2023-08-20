@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def create_app() -> FastAPI:
     app = FastAPI()
-    
+
     app.include_router(DocumentsRouter, prefix="/api/documents", tags=["documents"])
 
     return app
