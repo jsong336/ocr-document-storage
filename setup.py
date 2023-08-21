@@ -26,6 +26,7 @@ setup(
         "authlib",
         "itsdangerous",
         "httpx",
+        "jinja2",
     ],
     extras_require={
         "dev": [
