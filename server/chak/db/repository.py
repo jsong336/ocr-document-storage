@@ -178,7 +178,6 @@ class DocumentQuery:
             }
 
         fields = {k: 0 for k in Document.__fields__ if k in exclude}
-        print(fields)
         results = collections.Documents.find(query, fields)
         return document_results_to_documents(
             results.skip(self.page * self.n).limit(self.n)
