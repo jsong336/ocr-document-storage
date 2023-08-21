@@ -6,14 +6,18 @@ faker = Faker()
 
 
 def test_user_accounts():
-    account = UserAccount(email=faker.email())
+    account = UserAccount(
+        email=faker.email(),
+        first_name=faker.first_name(),
+        last_name=faker.last_name(),
+    )
     repos.create_user_account(account)
 
     assert account.id is not None
     assert account.created_at is not None
     assert account.updated_at is not None
 
-    account_get = repos.get_user_account_by_email(account.id)
+    account_get = repos.get_user_account_by_id(account.id)
     assert account_get.id == account.id
     assert account_get.email == account.email
     # assert account_get.created_at == account.created_at
@@ -21,7 +25,11 @@ def test_user_accounts():
 
 
 def test_documents():
-    account = UserAccount(email=faker.email())
+    account = UserAccount(
+        email=faker.email(),
+        first_name=faker.first_name(),
+        last_name=faker.last_name(),
+    )
     repos.create_user_account(account)
 
     document = Document(owner_id=account.id, title=faker.name())

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Depends, Query
 from ..db.schema import UserAccount, Document, FileMeta
 from ..api.auth import get_user
-from ..db.repository import create_document, set_document_text_search
+from ..db.repository import create_document, set_document_text_search, DocumentQuery
 from ..ocr import process_ocr as _process_ocr
 import typing as t
 import logging
@@ -10,6 +10,11 @@ import uuid
 logger = logging.getLogger(__file__)
 
 router = APIRouter()
+
+
+@router.get("/")
+def search_documents(query: t.Annotated[DocumentQuery, Depends(DocumentQuery)]):
+    return {"documents": query(exclude={"text_search"})}
 
 
 @router.post("/")

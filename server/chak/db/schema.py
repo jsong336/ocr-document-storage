@@ -19,7 +19,7 @@ class UserAccount(BaseRootModel):
     email: EmailStr = Field()
     last_name: str
     first_name: str
-    sub: str
+    sub: t.Optional[str] = None
     picture_link: t.Optional[str] = None
     locale: t.Optional[str] = None
 
@@ -31,8 +31,8 @@ class FileMeta(_BaseModel):
 
 
 class Document(BaseRootModel):
-    owner_id: str
-    title: str = Field(default="")
+    owner_id: t.Optional[str] = Field(default=None)
+    title: t.Optional[str] = Field(default=None)
     text_search: t.Optional[str] = Field(default=None)
     tags: list[str] = Field(default_factory=list)
-    file: FileMeta = Field()
+    file: t.Optional[FileMeta] = Field(default=None)
