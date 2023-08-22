@@ -58,12 +58,21 @@ def google_user_info_to_user_account(userinfo: dict[str, t.Any]) -> UserAccount:
 
 
 def get_user(request: Request) -> UserAccount:
-    user: dict = request.session.get("user", {})
-    user_account = SessionUserCache(**user).to_user_account()
-    if user is None or user_account is None:
+    user: dict = request.session.get("user")
+    if user is None:
         raise LoginRequiredException()
+    
+    user_account = SessionUserCache(**user).to_user_account()
+    if user_account is None:
+        raise LoginRequiredException()
+    
     return user_account
 
+def get_user_if_exists(request: Request) -> t.Optional[UserAccount]:
+    try:
+        return get_user(request)
+    except LoginRequiredException:
+        return None
 
 class LoginRequiredException(HTTPException):
     def __init__(self, **kwargs) -> None:
@@ -105,6 +114,12 @@ async def redirect_oauth_login(request: Request):
         # return RedirectResponse(url='/logout')
     redirect_url = request.url_for("login")
     return await oauth.google.authorize_redirect(request, redirect_url)
+
+
+@router.get("/logout", tags=["authentication"])
+def logout(request: Request):
+    request.session.pop("user", None)
+    return RedirectResponse("/")
 
 
 @router.get("/auth/login")

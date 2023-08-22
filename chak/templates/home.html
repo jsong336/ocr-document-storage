@@ -1,0 +1,25 @@
+{% extends "base.html" %} 
+{% block content %}
+<div>
+    {% for doc in documents %}
+    <div class="max-w-sm rounded overflow-hidden shadow-lg">
+        <img class="w-full" src="https://picsum.photos/200/300">
+        <div class="px-6 py-4">
+          <div class="font-bold text-xl mb-2">{{ doc.title }}</div>
+          <p class="text-gray-700 text-base">
+            <!-- {% if doc.text_search %}
+            {{ doc.text_search[:50] + "..." }}
+            {% endif %} -->
+          </p>
+        </div>
+        <div class="px-6 pt-4 pb-2">
+            {% for tag in doc.tags %}
+            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+                {{ tag }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %} 
+{% block content %}
+<div>
+    <div class="text-center">
+        {% if user is none %}
+        {% block auth_content %}
+        {% endblock %}
+        {% else %}
+        <a href="{{ url_for('render_index') }}">Log out</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

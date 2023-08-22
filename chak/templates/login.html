@@ -1,0 +1,14 @@
+{% extends "auth-base.html" %} 
+{% block auth_content %}
+<h1 class="text-4xl font-bold tracking-tight text-gray-900">
+    Log In
+</h1>
+<div class="mt-10 flex items-center justify-center gap-x-6">
+    <button>
+        <a class="login-with-google-btn" href="{{ url_for('redirect_oauth_login') }}">
+            Sign in with Google
+        </a>
+    </button>
+    <a href="/pages/register"> Don't have account?</a>
+    </div>
+{% endblock %}
