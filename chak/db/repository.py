@@ -99,13 +99,13 @@ def get_document(id: str) -> Document:
     return Document(**bson_object_id_to_str(results))
 
 
-@transaction(mode="update")
-def set_document_text_search(doc: Document, text: str):
+@transaction()
+def update_document(doc: Document, **updates):
     collections.Documents.update_one(
         filter={"_id": ObjectId(doc.id)},
         update={
             "$set": {
-                "text_search": text,
+                **updates,
                 "updated_at": doc.updated_at,
             },
         },

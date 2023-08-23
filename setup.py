@@ -27,6 +27,7 @@ setup(
         "itsdangerous",
         "httpx",
         "jinja2",
+        "google-cloud-storage"
     ],
     extras_require={
         "dev": [

@@ -6,3 +6,11 @@ services:
     image: mongo:latest
     ports:
       - 27017:27017
+  
+  gcs:
+    container_name: gcs
+    image: oittaa/gcp-storage-emulator
+    ports:
+      - 9023:9023
+    environment:
+      - PORT=9023

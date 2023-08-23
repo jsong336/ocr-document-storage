@@ -35,4 +35,5 @@ class Document(BaseRootModel):
     title: t.Optional[str] = Field(default=None)
     text_search: t.Optional[str] = Field(default=None)
     tags: list[str] = Field(default_factory=list)
+    link: t.Optional[str] = Field(default=None)
     file: t.Optional[FileMeta] = Field(default=None)

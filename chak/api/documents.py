@@ -1,8 +1,9 @@
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Depends, Query
 from ..db.schema import UserAccount, Document, FileMeta
 from ..api.auth import get_user
-from ..db.repository import create_document, set_document_text_search, DocumentQuery
-from ..ocr import process_ocr as _process_ocr
+from ..db.repository import create_document, update_document, DocumentQuery
+from ..image import process_ocr as _process_ocr
+from ..storage import upload_user_document
 import typing as t
 import logging
 import uuid
@@ -38,7 +39,8 @@ def submit_documents(
     def process_ocr(doc: Document, *args, **kw):
         try:
             text = _process_ocr(*args, **kw)
-            set_document_text_search(doc, text=text)
+            link = upload_user_document(doc, file.file.read())
+            update_document(doc, text_search=text, link=link)
         except Exception as e:
             logger.warning(str(e))
             raise

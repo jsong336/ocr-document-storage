@@ -30,9 +30,9 @@ fmt:
 	$(python) -m black .
 
 
-.PHONY: db
-db:
-	docker compose up mongo
+.PHONY: resources
+resources:
+	docker compose up mongo gcs
 
 
 .PHONY: start 

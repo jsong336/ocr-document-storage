@@ -13,3 +13,10 @@ def process_ocr(task_id: str, data: io.BytesIO) -> str:
     results = pytesseract.image_to_string(img)
     logging.info(f"processed ocr - {task_id}")
     return results
+
+
+def generate_thumbnail(task_id: str, filename:str, data: io.BytesIO) -> bytes:
+    img = Image.open(data)
+    img.thumbnail((100,100), Image.ANTIALIAS)
+    logging.info(f"generating thumbnails - {task_id}")
+    return img.tobitmap(filename)
