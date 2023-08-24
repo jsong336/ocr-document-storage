@@ -13,6 +13,10 @@ class Bucket:
     Documents = "documents"
     Thumbnails = "thumbnails"
 
+    @classmethod
+    def valid_bucket(cls, bucket: str) -> bool:
+        return bucket in [cls.Documents, cls.Thumbnails]
+
 
 try:
     bucket = client.create_bucket(Bucket.Documents)
@@ -57,6 +61,18 @@ def upload_blob(
     return f"/{blobpath}"
 
 
+def download_blob(
+    dest: str,
+    user_id: str,
+    name: str,
+    fs: io.IOBase,
+) -> None:
+    blobpath = f"{dest}/{user_id}/{name}"
+    blob = bucket.blob(blobpath)
+    blob.download_to_file(fs)
+    return
+
+
 def _validate_document(document: Document):
     if not document.id:
         raise ValueError("Document must exists before uploading to storage.")
@@ -64,15 +80,24 @@ def _validate_document(document: Document):
         raise ValueError("Document is not owned by a user")
 
 
-def upload_user_document(document: Document, *args, **kwargs) -> str:
+def upload_user_document(dest: str, document: Document, *args, **kwargs) -> str:
     _validate_document(document)
+    if not Bucket.valid_bucket(dest):
+        raise ValueError(f"{dest} is not valid bucket name.")
 
-    filename = f"{document.id}-{document.file.filename}"
-    return upload_blob(Bucket.Documents, document.owner_id, filename, *args, **kwargs)
+    filename = f"{document.id}/{document.file.filename}"
+    upload_blob(dest, document.owner_id, filename, *args, **kwargs)
+    return f"/storage/{dest}/{document.id}"
 
 
-def upload_user_thumbnail(document: Document, *args, **kwargs) -> str:
+def download_user_document(
+    dest: str, document: Document, fs: io.IOBase, *args, **kwargs
+) -> None:
     _validate_document(document)
+    if not Bucket.valid_bucket(dest):
+        raise ValueError(f"{dest} is not valid bucket name.")
 
-    filename = f"{document.id}-{document.file.filename}"
-    return upload_blob(Bucket.Thumbnails, document.owner_id, filename, *args, **kwargs)
+    filename = f"{document.id}/{document.file.filename}"
+    download_blob(dest, document.owner_id, filename, fs, *args, **kwargs)
+
+    return

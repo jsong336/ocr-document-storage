@@ -1,17 +1,45 @@
-from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Depends, Query
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    BackgroundTasks,
+    Depends,
+    Query,
+    Request,
+)
 from ..db.schema import UserAccount, Document, FileMeta
 from ..api.auth import get_user
-from ..db.repository import create_document, update_document, DocumentQuery
-from ..image import process_ocr, generate_thumbnail
-from ..storage import upload_user_document, upload_user_thumbnail
+from ..db.repository import (
+    create_document,
+    update_document,
+    DocumentQuery,
+    get_document_by_id,
+)
+from ..image import process_ocr, generate_thumbnail, THUMBNAIL_FORMAT
+from ..storage import upload_user_document, Bucket
 import typing as t
 import logging
-import io
 import uuid
 
 logger = logging.getLogger(__file__)
 
 router = APIRouter()
+
+
+class DocumentNotFoundException(Exception):
+    ...
+
+
+def get_user_document(
+    document_id: str, request: Request
+) -> tuple[UserAccount, Document]:
+    user_account = get_user(request)
+    doc = get_document_by_id(document_id)
+    # TODO: check for permission of user_account on document
+    if doc.owner_id != user_account.id:
+        # document id not owned by user.
+        raise DocumentNotFoundException()
+    return user_account, doc
 
 
 @router.get("/")
@@ -41,19 +69,25 @@ def submit_documents(
         try:
             text = process_ocr(task_id, file.file)
             thumbnail = generate_thumbnail(task_id, file.file)
-            thumbnail_link = upload_user_thumbnail(doc, file=thumbnail)
+            thumbnail_link = upload_user_document(
+                Bucket.Thumbnails, doc, file=thumbnail
+            )
             # with open("test.png", "wb") as f:
             #     thumbnail.seek(0)
             #     s = thumbnail.read()
             #     f.write(s)
 
-            link = upload_user_document(doc, file=file.file)
+            link = upload_user_document(Bucket.Documents, doc, file=file.file)
             update_document(
                 doc,
                 updates={
                     "text_search": text,
                     "file.link": link,
-                    "file.thumbnail_link": thumbnail_link,
+                    "thumbnail": FileMeta(
+                        filename=f"{doc.file.filename}.thumbnail",
+                        content_type=f"image/{THUMBNAIL_FORMAT}",
+                        link=thumbnail_link,
+                    ).model_dump(),
                 },
             )
         except Exception as e:

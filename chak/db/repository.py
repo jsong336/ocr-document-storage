@@ -92,7 +92,7 @@ def create_document(doc: Document) -> Document:
     return
 
 
-def get_document(id: str) -> Document:
+def get_document_by_id(id: str) -> Document:
     results = collections.Documents.find_one(filter={"_id": ObjectId(id)})
     if results is None:
         raise ValueError(f"Document with {id} not found")

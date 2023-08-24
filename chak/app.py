@@ -1,6 +1,7 @@
 import logging
 from .api.documents import router as DocumentsRouter
 from .api.auth import router as AuthRouter
+from .api.storage import router as StorageRouter
 from .pages import include_render_pages
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi import FastAPI
@@ -19,6 +20,7 @@ def create_app() -> FastAPI:
     #     return RedirectResponse("/login")
 
     app.include_router(DocumentsRouter, prefix="/api/documents", tags=["documents"])
+    app.include_router(StorageRouter, prefix="/storage", tags=["storage"])
     app.include_router(AuthRouter, tags=["authentication"])
     include_render_pages(app)
     return app

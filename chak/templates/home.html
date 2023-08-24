@@ -3,7 +3,7 @@
 <div>
     {% for doc in documents %}
     <div class="max-w-sm rounded overflow-hidden shadow-lg">
-        <img class="w-full" src="https://picsum.photos/200/300">
+        <img class="w-full" src="{{ doc.thumbnail.link }}">
         <div class="px-6 py-4">
           <div class="font-bold text-xl mb-2">{{ doc.title }}</div>
           <p class="text-gray-700 text-base">

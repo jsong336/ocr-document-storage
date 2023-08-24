@@ -39,7 +39,7 @@ def test_documents():
     assert document.created_at is not None
     assert document.updated_at is not None
 
-    document_get = repos.get_document(document.id)
+    document_get = repos.get_document_by_id(document.id)
     assert document_get.id == document_get.id
     assert document_get.title == document_get.title
     assert document_get.owner_id == document_get.owner_id
