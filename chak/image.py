@@ -6,6 +6,8 @@ from PIL import Image
 
 logger = logging.getLogger(__name__)
 pytesseract.pytesseract.tesseract_cmd = "tesseract"
+THUMBNAIL_SIZE = (500, 500)
+THUMBNAIL_FORMAT = "png"
 
 
 def process_ocr(task_id: str, data: io.BytesIO) -> str:
@@ -15,8 +17,11 @@ def process_ocr(task_id: str, data: io.BytesIO) -> str:
     return results
 
 
-def generate_thumbnail(task_id: str, filename:str, data: io.BytesIO) -> bytes:
+def generate_thumbnail(task_id: str, data: io.BytesIO) -> io.BytesIO:
     img = Image.open(data)
-    img.thumbnail((100,100), Image.ANTIALIAS)
+    img.thumbnail(THUMBNAIL_SIZE, Image.AFFINE)
     logging.info(f"generating thumbnails - {task_id}")
-    return img.tobitmap(filename)
+
+    file = io.BytesIO()
+    img.save(file, format=THUMBNAIL_FORMAT)
+    return file

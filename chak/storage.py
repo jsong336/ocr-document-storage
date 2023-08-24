@@ -1,51 +1,78 @@
 import google.cloud.storage as gcs
 import typing as t
+import io
+import tempfile as tmp
 from google.cloud.exceptions import Conflict
-from .db.schema import  Document
+from .db.schema import Document
 
 
 client = gcs.Client()
 
-class buckets:
+
+class Bucket:
     Documents = "documents"
+    Thumbnails = "thumbnails"
+
 
 try:
-    bucket = client.create_bucket(buckets.Documents)
+    bucket = client.create_bucket(Bucket.Documents)
 except Conflict:
-    bucket = client.get_bucket(buckets.Documents)
+    bucket = client.get_bucket(Bucket.Documents)
 
 
-def _user_document_blob(document: Document):
+@t.overload
+def upload_blob(dest: str, user_id: str, name: str, file: io.IOBase) -> str:
+    ...
+
+
+@t.overload
+def upload_blob(
+    dest: str, user_id: str, name: str, file: tmp.SpooledTemporaryFile
+) -> str:
+    ...
+
+
+@t.overload
+def upload_blob(dest: str, user_id: str, name: str, file: str) -> str:
+    ...
+
+
+def upload_blob(
+    dest: str,
+    user_id: str,
+    name: str,
+    file: t.Union[io.IOBase, tmp.SpooledTemporaryFile, str],
+) -> str:
+    blobpath = f"{dest}/{user_id}/{name}"
+    blob = bucket.blob(blobpath)
+    if isinstance(file, io.IOBase):
+        blob.upload_from_file(file, rewind=True)
+    elif isinstance(file, tmp.SpooledTemporaryFile):
+        blob.upload_from_file(file._file, rewind=True)
+    elif isinstance(file, str):
+        blob.upload_from_string(file)
+    else:
+        raise ValueError(f"{type(file)} is not supported type.")
+
+    return f"/{blobpath}"
+
+
+def _validate_document(document: Document):
     if not document.id:
         raise ValueError("Document must exists before uploading to storage.")
     if not document.owner_id:
         raise ValueError("Document is not owned by a user")
-    
-    blobpath = f"{buckets.Documents}/{document.owner_id}/{document.id}-{document.file.filename}"
-    return bucket.blob(blobpath), f"/{blobpath}"
 
 
-b: gcs.Blob = next(bucket.list_blobs())
-b.download_as_string()
+def upload_user_document(document: Document, *args, **kwargs) -> str:
+    _validate_document(document)
+
+    filename = f"{document.id}-{document.file.filename}"
+    return upload_blob(Bucket.Documents, document.owner_id, filename, *args, **kwargs)
 
 
+def upload_user_thumbnail(document: Document, *args, **kwargs) -> str:
+    _validate_document(document)
 
-@t.overload
-def upload_user_document(document: Document, fs: t.Any) -> str:
-    ...
-
-@t.overload
-def upload_user_document(document: Document, data:str) -> str:
-    ...
-
-
-def upload_user_document(document: Document, fs: t.Any) -> str:
-    blob, link = _user_document_blob(document)
-    blob.upload_from_file(fs)
-    return link
-
-
-def upload_user_document(document: Document, data:str) -> str:
-    blob, link = _user_document_blob(document)
-    blob.upload_from_string(data)
-    return link
+    filename = f"{document.id}-{document.file.filename}"
+    return upload_blob(Bucket.Thumbnails, document.owner_id, filename, *args, **kwargs)

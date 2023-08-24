@@ -28,6 +28,8 @@ class FileMeta(_BaseModel):
     filename: str
     content_type: str
     file_size: int
+    link: t.Optional[str] = None
+    thumbnail_link: t.Optional[str] = None
 
 
 class Document(BaseRootModel):
@@ -35,5 +37,4 @@ class Document(BaseRootModel):
     title: t.Optional[str] = Field(default=None)
     text_search: t.Optional[str] = Field(default=None)
     tags: list[str] = Field(default_factory=list)
-    link: t.Optional[str] = Field(default=None)
     file: t.Optional[FileMeta] = Field(default=None)

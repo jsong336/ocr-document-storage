@@ -2,10 +2,11 @@ from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Depends, Query
 from ..db.schema import UserAccount, Document, FileMeta
 from ..api.auth import get_user
 from ..db.repository import create_document, update_document, DocumentQuery
-from ..image import process_ocr as _process_ocr
-from ..storage import upload_user_document
+from ..image import process_ocr, generate_thumbnail
+from ..storage import upload_user_document, upload_user_thumbnail
 import typing as t
 import logging
+import io
 import uuid
 
 logger = logging.getLogger(__file__)
@@ -36,11 +37,25 @@ def submit_documents(
     )
     create_document(doc)
 
-    def process_ocr(doc: Document, *args, **kw):
+    def process_document(doc: Document, task_id: str, file: UploadFile):
         try:
-            text = _process_ocr(*args, **kw)
-            link = upload_user_document(doc, file.file.read())
-            update_document(doc, text_search=text, link=link)
+            text = process_ocr(task_id, file.file)
+            thumbnail = generate_thumbnail(task_id, file.file)
+            thumbnail_link = upload_user_thumbnail(doc, file=thumbnail)
+            # with open("test.png", "wb") as f:
+            #     thumbnail.seek(0)
+            #     s = thumbnail.read()
+            #     f.write(s)
+
+            link = upload_user_document(doc, file=file.file)
+            update_document(
+                doc,
+                updates={
+                    "text_search": text,
+                    "file.link": link,
+                    "file.thumbnail_link": thumbnail_link,
+                },
+            )
         except Exception as e:
             logger.warning(str(e))
             raise
@@ -49,6 +64,6 @@ def submit_documents(
 
     task_id = str(uuid.uuid4())
     logger.info(f"queuing task_id: {task_id}")
-    background_tasks.add_task(process_ocr, doc, task_id, file.file)
+    background_tasks.add_task(process_document, doc, task_id, file)
 
     return {"message": "ok", "document_id": doc.id}, 201

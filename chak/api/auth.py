@@ -61,18 +61,20 @@ def get_user(request: Request) -> UserAccount:
     user: dict = request.session.get("user")
     if user is None:
         raise LoginRequiredException()
-    
+
     user_account = SessionUserCache(**user).to_user_account()
     if user_account is None:
         raise LoginRequiredException()
-    
+
     return user_account
+
 
 def get_user_if_exists(request: Request) -> t.Optional[UserAccount]:
     try:
         return get_user(request)
     except LoginRequiredException:
         return None
+
 
 class LoginRequiredException(HTTPException):
     def __init__(self, **kwargs) -> None:

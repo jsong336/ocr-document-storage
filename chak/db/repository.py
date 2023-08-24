@@ -100,7 +100,7 @@ def get_document(id: str) -> Document:
 
 
 @transaction()
-def update_document(doc: Document, **updates):
+def update_document(doc: Document, updates: dict[str, t.Any]):
     collections.Documents.update_one(
         filter={"_id": ObjectId(doc.id)},
         update={
