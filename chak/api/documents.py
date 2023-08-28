@@ -2,11 +2,12 @@ from fastapi import (
     APIRouter,
     UploadFile,
     File,
+    Form,
     BackgroundTasks,
     Depends,
-    Query,
     Request,
 )
+from fastapi.responses import RedirectResponse
 from ..db.schema import UserAccount, Document, FileMeta
 from ..api.auth import get_user
 from ..db.repository import (
@@ -50,10 +51,10 @@ def search_documents(query: t.Annotated[DocumentQuery, Depends(DocumentQuery)]):
 @router.post("/")
 def submit_documents(
     background_tasks: BackgroundTasks,
+    title: t.Annotated[str, Form()],
     file: UploadFile = File(...),
+    tags: t.Optional[list] = File(default_factory=list),
     user_account: UserAccount = Depends(get_user),
-    title: str = Query(),
-    tags: t.Optional[list[str]] = Query(default_factory=list),
 ):
     doc = Document(
         owner_id=user_account.id,

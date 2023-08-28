@@ -143,6 +143,8 @@ class DocumentQuery:
         created_at_range: t.Optional[str] = None,
         n: int = 15,
         page: int = 0,
+        sortby: str = "updated_at",
+        ascending: bool = False,
     ) -> None:
         self.title = title
         self.q = q
@@ -151,6 +153,8 @@ class DocumentQuery:
         self.created_at_range = datetime_range_split(created_at_range)
         self.n = n
         self.page = page
+        self.sortby = sortby
+        self.ascending = pymongo.ASCENDING if ascending else pymongo.DESCENDING
 
     def __call__(self, exclude: t.Optional[set] = None) -> Any:
         query = {}
@@ -178,7 +182,9 @@ class DocumentQuery:
             }
 
         fields = {k: 0 for k in Document.__fields__ if k in (exclude or ())}
-        results = collections.Documents.find(query, fields)
+        results = collections.Documents.find(query, fields).sort(
+            [(self.sortby, self.ascending)]
+        )
         return document_results_to_documents(
             results.skip(self.page * self.n).limit(self.n)
         )
