@@ -38,3 +38,4 @@ class Document(BaseRootModel):
     tags: list[str] = Field(default_factory=list)
     file: t.Optional[FileMeta] = Field(default=None)
     thumbnail: t.Optional[FileMeta] = Field(default=None)
+    removed: bool = Field(default=False)

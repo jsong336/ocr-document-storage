@@ -93,7 +93,7 @@ def create_document(doc: Document) -> Document:
 
 
 def get_document_by_id(id: str) -> Document:
-    results = collections.Documents.find_one(filter={"_id": ObjectId(id)})
+    results = collections.Documents.find_one(filter={"_id": ObjectId(id), "removed": False})
     if results is None:
         raise ValueError(f"Document with {id} not found")
     return Document(**bson_object_id_to_str(results))
@@ -102,7 +102,7 @@ def get_document_by_id(id: str) -> Document:
 @transaction()
 def update_document(doc: Document, updates: dict[str, t.Any]):
     collections.Documents.update_one(
-        filter={"_id": ObjectId(doc.id)},
+        filter={"_id": ObjectId(doc.id), "removed": False},
         update={
             "$set": {
                 **updates,
@@ -157,7 +157,7 @@ class DocumentQuery:
         self.ascending = pymongo.ASCENDING if ascending else pymongo.DESCENDING
 
     def __call__(self, exclude: t.Optional[set] = None) -> Any:
-        query = {}
+        query = {"removed": False}
         if self.title:
             query["title"] = f"/{self.title}/i"
         if self.q:
@@ -193,3 +193,14 @@ class DocumentQuery:
 def query_documents(*args, **kwargs) -> list[Document]:
     query = DocumentQuery(*args, **kwargs)
     return query()
+
+
+def delete_document(id:str) -> None:
+    collections.Documents.find_one_and_delete(
+        filter = {"_id": ObjectId(id)}
+    )
+    return
+
+
+def mark_document_delete(document: Document):
+    return update_document(document, updates={"removed": True})
