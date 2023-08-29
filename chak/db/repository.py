@@ -151,10 +151,13 @@ class DocumentQuery:
         self.tags = tags
         self.updated_at_range = datetime_range_split(updated_at_range)
         self.created_at_range = datetime_range_split(created_at_range)
-        self.n = n
-        self.page = page
+        self.n = n if n >= 0 else 0
+        self.page = page if page > 0 else 0
         self.sortby = sortby
         self.ascending = pymongo.ASCENDING if ascending else pymongo.DESCENDING
+    
+    def dict(self):
+        return {k: v for k, v in self.__dict__}
 
     def __call__(self, exclude: t.Optional[set] = None) -> Any:
         query = {"removed": False}

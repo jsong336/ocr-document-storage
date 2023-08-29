@@ -177,4 +177,28 @@
     {% endfor %}
   </ul>
 </div>
+<div class="flex flex-row mx-auto justify-center">
+  {% macro button(title, href) %}
+  <button type="button" class="bg-gray-800 text-white rounded-md border-r border-gray-100 py-2 hover:bg-red-700 hover:text-white px-3 m-3">
+    <div class="flex flex-row align-middle">
+      {% if href %}
+      <a href="{{ href }}"> <p class="ml-2">{{ title }}</p> </a>
+      {% else %}
+      <p class="ml-2 text-gray-500">{{ title }}</p> 
+      {% endif %}
+    </div>
+  </button>
+  {%- endmacro %}
+
+  {% if page > 0 %}
+  {{ button("< Prev", "/pages/home?page=" + ((page - 1) | string)) }}
+  {% else %}
+  {{ button("< Prev") }}
+  {% endif %}
+  {% if (documents | length) > 0 %}
+  {{ button("Next >", "/pages/home?page=" + ((page + 1) | string)) }}
+  {% else %}
+  {{ button("Next >") }}
+  {% endif %}
+</div>
 {% endblock %}
