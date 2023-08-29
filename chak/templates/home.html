@@ -3,8 +3,48 @@
 <div
   class="max-w-screen-xl flex flex-wrap items-center justify-end mx-auto p-4"
 >
+  <form class="mx-2" action="{{url_for('render_pages', path='home')}}">
+    <label
+      for="search-document"
+      class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
+      >Search</label
+    >
+    <div class="relative">
+      <input
+        type="search"
+        name="q"
+        id="search-document"
+        class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 
+          focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 
+          dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        placeholder="Search..."
+        required
+      />
+      <button
+        type="submit"
+        class="text-white absolute right-2.5 bottom-2.5 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-4 py-2"
+      >
+        <svg
+          class="w-4 h-4 text-gray-500 dark:text-gray-400"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 20 20"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </form>
+
   <button
-    class="text-white shadow-m p-2 rounded-md bg-gray-900 hover:scale-90"
+    class="mx-2 text-white shadow-m p-2 rounded-md bg-gray-900 hover:scale-90"
     data-modal-target="uploadModal"
     data-modal-toggle="uploadModal"
   >
@@ -53,13 +93,6 @@
         </button>
       </div>
       <!-- Modal body -->
-      <iframe
-        name="targetEmpty"
-        width="0"
-        height="0"
-        border="0"
-        style="display: none"
-      ></iframe>
       <form
         target="_blank"
         action="{{ url_for('submit_documents') }}"
@@ -75,7 +108,7 @@
             name="file"
             id="file"
             type="file"
-            accept="image/*"
+            accept="*/*"
             capture="camera"
           />
           <label for="title">Title</label>

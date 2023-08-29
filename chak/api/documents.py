@@ -7,7 +7,6 @@ from fastapi import (
     Depends,
     Request,
 )
-from fastapi.responses import RedirectResponse
 from ..db.schema import UserAccount, Document, FileMeta
 from ..api.auth import get_user
 from ..db.repository import (
@@ -18,6 +17,7 @@ from ..db.repository import (
 )
 from ..image import process_ocr, generate_thumbnail, THUMBNAIL_FORMAT
 from ..storage import upload_user_document, Bucket
+from PIL import Image
 import typing as t
 import logging
 import uuid
@@ -68,8 +68,14 @@ def submit_documents(
 
     def process_document(doc: Document, task_id: str, file: UploadFile):
         try:
-            text = process_ocr(task_id, file.file)
-            thumbnail = generate_thumbnail(task_id, file.file)
+            if file.content_type == "image/heic":
+                heic = Image.open(file.file)
+                img = heic.convert("RGB")
+            else:
+                img = Image.open(file.file)
+            
+            text = process_ocr(task_id, img)
+            thumbnail = generate_thumbnail(task_id, img)
             thumbnail_link = upload_user_document(
                 Bucket.Thumbnails, doc, file=thumbnail
             )

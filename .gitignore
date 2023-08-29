@@ -161,3 +161,5 @@ cython_debug/
 
 # Google Secret
 .local/**
+
+**/.DS_Store

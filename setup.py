@@ -21,6 +21,7 @@ setup(
         "pydantic[email]",
         "pymongo[srv]",
         "pytesseract",
+        "pillow_heif",
         "python-multipart",
         "typing_extensions",
         "authlib",
