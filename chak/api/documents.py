@@ -8,12 +8,12 @@ from fastapi import (
     Request,
 )
 from fastapi.responses import JSONResponse
-from ..db.schema import UserAccount, Document, FileMeta
+from ..db.schema import UserAccount, Document, FileMeta, DocumentPermission
 from ..api.auth import get_user
 from ..db.repository import (
     create_document,
     update_document,
-    mark_document_delete, 
+    mark_document_delete,
     DocumentQuery,
     get_document_by_id,
 )
@@ -39,22 +39,28 @@ def get_user_document(
     user_account = get_user(request)
     doc = get_document_by_id(document_id)
     # TODO: check for permission of user_account on document
-    if doc.owner_id != user_account.id:
-        # document id not owned by user.
+    if not doc.check_permission(user_account, DocumentPermission.READ):
         raise DocumentNotFoundException()
     return user_account, doc
 
 
 @router.get("/")
-def search_documents(query: t.Annotated[DocumentQuery, Depends(DocumentQuery)]):
-    return {"documents": query(exclude={"text_search"})}
+def search_documents(
+    query: t.Annotated[DocumentQuery, Depends(DocumentQuery)],
+    user: t.Annotated[UserAccount, Depends(get_user)],
+):
+    return {"documents": query(user=user, exclude={"text_search"})}
 
 
 @router.delete("/")
-def mark_document_removed(user_document: tuple[UserAccount, Document] = Depends(get_user_document)):
+def mark_document_removed(
+    user_document: tuple[UserAccount, Document] = Depends(get_user_document)
+):
     _, document = user_document
     mark_document_delete(document)
-    return JSONResponse({"message": f"marked document {document.id} removed"}, status_code=202)
+    return JSONResponse(
+        {"message": f"marked document {document.id} removed"}, status_code=202
+    )
 
 
 @router.post("/")
@@ -82,7 +88,7 @@ def submit_documents(
                 img = heic.convert("RGB")
             else:
                 img = Image.open(file.file)
-            
+
             text = process_ocr(task_id, img)
             thumbnail = generate_thumbnail(task_id, img)
             thumbnail_link = upload_user_document(

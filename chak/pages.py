@@ -29,7 +29,7 @@ def render_pages(
         context = {"request": request, "user": user}
         match path:
             case "home":
-                context["documents"] = query()
+                context["documents"] = query(user=user)
                 context["page"] = query.page
         response = templates.TemplateResponse(f"{path}.html", context)
     except jinja2.exceptions.TemplateNotFound:

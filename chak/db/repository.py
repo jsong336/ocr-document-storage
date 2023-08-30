@@ -1,5 +1,5 @@
 from typing import Any
-from .schema import BaseRootModel, UserAccount, Document
+from .schema import BaseRootModel, UserAccount, Document, get_permissions_by_role, DocumentPermission
 from .connection import collections
 import datetime as dt
 import pymongo
@@ -93,7 +93,9 @@ def create_document(doc: Document) -> Document:
 
 
 def get_document_by_id(id: str) -> Document:
-    results = collections.Documents.find_one(filter={"_id": ObjectId(id), "removed": False})
+    results = collections.Documents.find_one(
+        filter={"_id": ObjectId(id), "removed": False}
+    )
     if results is None:
         raise ValueError(f"Document with {id} not found")
     return Document(**bson_object_id_to_str(results))
@@ -155,12 +157,21 @@ class DocumentQuery:
         self.page = page if page > 0 else 0
         self.sortby = sortby
         self.ascending = pymongo.ASCENDING if ascending else pymongo.DESCENDING
-    
+
     def dict(self):
         return {k: v for k, v in self.__dict__}
 
-    def __call__(self, exclude: t.Optional[set] = None) -> Any:
-        query = {"removed": False}
+    def __call__(self, user: UserAccount, exclude: t.Optional[set] = None) -> Any:
+        query = {
+            "removed": False,
+            "role_assignments": {
+                "$elemMatch": {
+                    "subject": str(user.id),
+                    "role": {
+                        "$in":[role.name() for role in get_permissions_by_role(DocumentPermission.READ)]},
+                }
+            },
+        }
         if self.title:
             query["title"] = f"/{self.title}/i"
         if self.q:
@@ -198,10 +209,8 @@ def query_documents(*args, **kwargs) -> list[Document]:
     return query()
 
 
-def delete_document(id:str) -> None:
-    collections.Documents.find_one_and_delete(
-        filter = {"_id": ObjectId(id)}
-    )
+def delete_document(id: str) -> None:
+    collections.Documents.find_one_and_delete(filter={"_id": ObjectId(id)})
     return
 
 
